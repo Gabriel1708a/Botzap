@@ -12,7 +12,7 @@
   },
   "panelHandler": {
     "enabled": true,
-    "host": "0.0.0.0",
+    "host": "206.183.129.78",
     "port": 6000
   },
   "botInfo": {
