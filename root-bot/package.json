@@ -1,0 +1,37 @@
+{
+  "name": "bot-admin-whatsapp",
+  "version": "1.0.0",
+  "description": "Bot Administrador de Grupos WhatsApp com integração Laravel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "pm2:start": "pm2 start index.js --name bot-admin",
+    "pm2:stop": "pm2 stop bot-admin",
+    "pm2:restart": "pm2 restart bot-admin",
+    "pm2:logs": "pm2 logs bot-admin"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "automation",
+    "laravel",
+    "ads"
+  ],
+  "author": "Gabriel",
+  "license": "MIT",
+  "dependencies": {
+    "whatsapp-web.js": "^1.23.0-alpha.5",
+    "qrcode-terminal": "^0.12.0",
+    "axios": "^1.6.2",
+    "moment-timezone": "^0.5.44",
+    "fs-extra": "^11.2.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

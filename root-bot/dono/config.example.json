@@ -1,0 +1,23 @@
+{
+  "numeroBot": "5543996191225",
+  "numeroDono": "554191236158",
+  "prefix": "!",
+  "timezone": "America/Sao_Paulo",
+  "autoReconnect": true,
+  "sessaoPersistente": true,
+  "laravelApi": {
+    "enabled": true,
+    "baseUrl": "https://painel.botwpp.tech/api",
+    "token": "SEU_TOKEN_AQUI"
+  },
+  "panelHandler": {
+    "host": "206.183.129.78",
+    "port": 3000
+  },
+  "botInfo": {
+    "nome": "Bot Admin",
+    "versao": "1.0.0",
+    "descricao": "Bot Administrador de Grupos WhatsApp"
+  },
+  "groqApiKey": ""
+}
