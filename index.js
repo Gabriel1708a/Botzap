@@ -7,6 +7,7 @@ const moment = require('moment-timezone');
 // Importa configurações e handlers
 const config = require('./dono/config.json');
 const AdsHandler = require('./handlers/adsHandler');
+const PanelHandler = require('./handlers/panelHandler');
 
 class BotAdmin {
     constructor() {
@@ -34,6 +35,7 @@ class BotAdmin {
         // Maps para comandos e handlers
         this.commands = new Map();
         this.adsHandler = null;
+        this.panelHandler = null;
         
         // Configurações do bot
         this.prefix = config.prefix;
@@ -145,6 +147,9 @@ class BotAdmin {
             // Inicializa o handler de anúncios
             await this.inicializarAdsHandler();
             
+            // Inicializa o panel handler
+            await this.inicializarPanelHandler();
+            
             // Envia mensagem de status para o dono
             await this.enviarStatusInicial();
         });
@@ -196,6 +201,22 @@ class BotAdmin {
                 listarAnuncios: () => [],
                 sincronizarAds: () => Promise.resolve()
             };
+        }
+    }
+    
+    /**
+     * Inicializa o panel handler para API de grupos
+     */
+    async inicializarPanelHandler() {
+        try {
+            this.panelHandler = new PanelHandler(this.client);
+            this.panelHandler.initialize();
+            
+            console.log('✅ Panel Handler inicializado!');
+            
+        } catch (error) {
+            console.error('❌ Erro ao inicializar panel handler:', error);
+            this.panelHandler = null;
         }
     }
     
@@ -267,7 +288,8 @@ class BotAdmin {
                 message,
                 args,
                 this.adsHandler,
-                this.commands
+                this.commands,
+                this.panelHandler
             );
             
         } catch (error) {
@@ -294,6 +316,11 @@ class BotAdmin {
                     for (const intervalId of this.adsHandler.intervals.values()) {
                         clearInterval(intervalId);
                     }
+                }
+                
+                // Desliga o panel handler
+                if (this.panelHandler) {
+                    this.panelHandler.shutdown();
                 }
                 
                 // Destrói o cliente
