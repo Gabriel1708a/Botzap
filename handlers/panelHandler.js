@@ -60,7 +60,7 @@ class PanelHandler {
         // Rotas da API
         this.setupRoutes();
         
-        const port = config.panelHandler?.port || 3000;
+        const port = config.panelHandler?.port || 6000;
         const host = config.panelHandler?.host || '0.0.0.0';
         
         this.server = this.app.listen(port, host, () => {
