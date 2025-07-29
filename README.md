@@ -1,183 +1,178 @@
 # 🤖 Bot Administrador WhatsApp com Integração Laravel
 
-Sistema completo de bot administrador para grupos WhatsApp com anúncios automáticos e sincronização bidirecional com painel Laravel.
+Bot administrador de grupos WhatsApp com sistema de anúncios automáticos e integração completa com painel Laravel.
 
-## 📋 Características Principais
+## 📋 Características
 
-- ✅ **Anúncios Automáticos**: Sistema completo de criação, listagem e remoção de anúncios programados
-- ✅ **Integração Laravel**: Sincronização automática bidirecional com API Laravel existente
-- ✅ **Comandos Modulares**: Sistema dinâmico de carregamento de comandos
-- ✅ **Sessão Persistente**: Mantém conexão WhatsApp após reinicializações
-- ✅ **Agendamento Inteligente**: Suporte a intervalos flexíveis (minutos, horas, dias)
-- ✅ **Reconexão Automática**: Reconecta automaticamente em caso de desconexão
+- ✅ **Anúncios Automáticos**: Crie, liste e remova anúncios programados
+- ✅ **Integração Laravel**: Sincronização bidirecional com API
+- ✅ **Comandos Dinâmicos**: Sistema modular de comandos
+- ✅ **Sessão Persistente**: Mantém login após reinicialização
 - ✅ **Monitoramento**: Logs detalhados e status em tempo real
-- ✅ **Produção**: Suporte completo ao PM2 para ambiente de produção
+- ✅ **Reconexão Automática**: Reconecta automaticamente em caso de queda
 
-## 🚀 Instalação Rápida
+## 🔧 Pré-requisitos
 
+- **Node.js** v18+ instalado
+- **NPM** ou **Yarn**
+- **PM2** (para produção)
+- Conta WhatsApp para o bot
+- Acesso ao painel Laravel (opcional)
+
+## 📦 Instalação
+
+### 1. Clone/Baixe o projeto
 ```bash
-# 1. Acesse a pasta do projeto
+# Se usando Git
+git clone <url-do-repositorio>
 cd root-bot
 
-# 2. Instale as dependências
+# Ou apenas extraia os arquivos na pasta root-bot/
+```
+
+### 2. Instale as dependências
+```bash
 npm install
-
-# 3. Configure o bot (edite o arquivo)
-cp dono/config.example.json dono/config.json
-nano dono/config.json
-
-# 4. Execute o bot
-npm start
 ```
 
-## 📱 Comandos Disponíveis
-
-### 📢 Sistema de Anúncios
-
-| Comando | Descrição | Exemplo |
-|---------|-----------|---------|
-| `!addads mensagem\|tempo` | Cria anúncio automático | `!addads Atenção pessoal!\|30m` |
-| `!listads` | Lista anúncios ativos | `!listads` |
-| `!rmads ID` | Remove anúncio por ID | `!rmads 1` |
-| `!menu` | Exibe menu completo | `!menu` |
-
-### ⏰ Formatos de Tempo Suportados
-
-- **Minutos**: `30m`, `45m`, `90m`
-- **Horas**: `1h`, `2h`, `12h`
-- **Dias**: `1d`, `7d`
-- **Combinações**: `2h30m`, `1d12h`, `3h45m`
-
-## 🔄 Integração com Laravel
-
-### Endpoints da API Utilizados
-
-O bot integra automaticamente com os seguintes endpoints do seu painel Laravel:
-
-- `GET /api/ads` - Lista todos os anúncios
-- `POST /api/ads` - Cria novo anúncio
-- `DELETE /api/ads/{localAdId}` - Remove anúncio por ID local
-- `DELETE /api/ads/{id}` - Remove anúncio por ID do banco
-- `PATCH /api/ads/{id}/mark-sent` - Marca anúncio como enviado
-
-### Sincronização Automática
-
-- **Intervalo**: A cada 2 minutos
-- **Bidirecional**: Bot ↔ Painel Laravel
-- **Offline**: Funciona mesmo com painel indisponível
-- **Conflitos**: Resolve automaticamente diferenças
-
-## 📁 Estrutura do Projeto
-
-```
-root-bot/
-├── 📂 commands/           # Comandos do bot
-│   ├── 📄 addads.js      # Comando para criar anúncios
-│   ├── 📄 listads.js     # Comando para listar anúncios
-│   ├── 📄 rmads.js       # Comando para remover anúncios
-│   └── 📄 menu.js        # Menu principal do bot
-│
-├── 📂 handlers/           # Integrações e handlers
-│   └── 📄 adsHandler.js  # Handler de sincronização Laravel
-│
-├── 📂 dono/              # Configurações do bot
-│   ├── 📄 config.json    # Configuração principal
-│   └── 📄 config.example.json # Modelo de configuração
-│
-├── 📄 index.js           # Arquivo principal do bot
-├── 📄 package.json       # Dependências e scripts
-├── 📄 README.md          # Documentação completa
-└── 📄 .gitignore         # Arquivos ignorados
-```
-
-## ⚙️ Configuração
-
-### Arquivo `dono/config.json`
+### 3. Configure o bot
+Edite o arquivo `dono/config.json`:
 
 ```json
 {
-  "numeroBot": "5543996191225",           // Número do WhatsApp do bot
-  "numeroDono": "554191236158",           // SEU número (quem pode usar)
-  "prefix": "!",                          // Prefixo dos comandos
-  "timezone": "America/Sao_Paulo",        // Fuso horário
-  "autoReconnect": true,                  // Reconexão automática
-  "sessaoPersistente": true,              // Manter sessão
+  "numeroBot": "5543996191225",        // Número do bot (com DDI)
+  "numeroDono": "554191236158",        // SEU número (com DDI)
+  "prefix": "!",                       // Prefixo dos comandos
+  "timezone": "America/Sao_Paulo",     // Fuso horário
+  "autoReconnect": true,               // Reconexão automática
+  "sessaoPersistente": true,           // Manter sessão
   "laravelApi": {
-    "enabled": true,                      // Ativar integração Laravel
+    "enabled": true,                   // true = integração ativa
     "baseUrl": "https://painel.botwpp.tech/api",
-    "token": "gabriel17"                  // Token de autenticação
-  },
-  "botInfo": {
-    "nome": "Bot Admin",
-    "versao": "1.0.0",
-    "descricao": "Bot Administrador de Grupos WhatsApp"
+    "token": "SEU_TOKEN_AQUI"          // Token do painel
   }
 }
 ```
 
-## 🛠️ Scripts Disponíveis
+## 🚀 Execução
 
+### Desenvolvimento
 ```bash
-# Desenvolvimento
-npm start                 # Execução simples
-npm run dev              # Com nodemon (auto-reload)
-
-# Produção com PM2
-npm run pm2:start        # Iniciar bot em produção
-npm run pm2:logs         # Ver logs em tempo real
-npm run pm2:restart      # Reiniciar bot
-npm run pm2:stop         # Parar bot
-```
-
-## 📊 Funcionalidades Avançadas
-
-### 🔒 Sistema de Segurança
-- ✅ Apenas o dono configurado pode usar comandos
-- ✅ Anúncios funcionam apenas em grupos
-- ✅ Validação completa de entrada
-- ✅ Limites de tempo (1 minuto a 7 dias)
-
-### 📈 Monitoramento
-- ✅ Logs detalhados no console
-- ✅ Status em tempo real via `!menu`
-- ✅ Contadores de anúncios ativos
-- ✅ Histórico de execução
-
-### 🔄 Robustez
-- ✅ Reconexão automática do WhatsApp
-- ✅ Cache local para modo offline
-- ✅ Tratamento de erros abrangente
-- ✅ Graceful shutdown
-
-## 🆘 Solução de Problemas
-
-### Bot não conecta ao WhatsApp
-```bash
-# Deletar sessão e tentar novamente
-rm -rf sessions/
+# Execução simples
 npm start
+
+# Com auto-reload (nodemon)
+npm run dev
 ```
 
-### Erro de API Laravel
+### Produção (PM2)
 ```bash
-# Testar conectividade
-curl -H "Authorization: Bearer SEU_TOKEN" https://painel.botwpp.tech/api/ads
-```
+# Instalar PM2 globalmente
+npm install -g pm2
 
-### Ver logs detalhados
-```bash
-# Logs em tempo real
+# Iniciar o bot
+npm run pm2:start
+
+# Ver logs
 npm run pm2:logs
 
-# Logs do sistema
-journalctl -u bot-admin -f
+# Parar o bot
+npm run pm2:stop
+
+# Reiniciar o bot
+npm run pm2:restart
 ```
 
-## 🔧 Expansão do Sistema
+### ⚡ Primeira Execução
 
-### Adicionar Novos Comandos
+1. Execute `npm start`
+2. Escaneie o QR Code com seu WhatsApp
+3. Bot será autenticado e ficará online
+4. Você receberá uma mensagem de status no privado
 
-1. Crie um arquivo na pasta `commands/`
+## 📱 Comandos Disponíveis
+
+### 📢 Anúncios
+
+#### `!addads mensagem|tempo`
+Cria um novo anúncio automático no grupo.
+
+**Exemplos:**
+```
+!addads Atenção pessoal!|30m          // A cada 30 minutos
+!addads Regras do grupo|1h             // A cada 1 hora  
+!addads Evento especial|2h30m          // A cada 2h30min
+!addads Backup diário|1d               // A cada 1 dia
+```
+
+**Formatos de tempo aceitos:**
+- `m` = minutos
+- `h` = horas  
+- `d` = dias
+- Combinações: `2h30m`, `1d12h`, etc.
+
+#### `!listads`
+Lista todos os anúncios ativos do grupo atual.
+
+#### `!rmads ID`
+Remove um anúncio pelo ID local.
+
+**Exemplo:**
+```
+!rmads 1                               // Remove anúncio ID 1
+```
+
+### ⚙️ Gerais
+
+#### `!menu`
+Exibe o menu completo com todos os comandos e status.
+
+## 🔄 Integração com Laravel
+
+### Endpoints da API
+
+O bot se integra com os seguintes endpoints:
+
+- `GET /api/ads` - Lista anúncios
+- `POST /api/ads` - Cria anúncio
+- `DELETE /api/ads/{localAdId}` - Remove por ID local
+- `DELETE /api/ads/{id}` - Remove por ID
+- `PATCH /api/ads/{id}/mark-sent` - Marca como enviado
+
+### Headers Obrigatórios
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+### Sincronização
+
+- **Automática**: A cada 2 minutos
+- **Manual**: Ao executar comandos
+- **Bidirecional**: Bot ↔ Painel Laravel
+
+## 📁 Estrutura de Arquivos
+
+```
+root-bot/
+├── commands/           # Comandos do bot
+│   ├── addads.js      # Criar anúncios
+│   ├── listads.js     # Listar anúncios  
+│   ├── rmads.js       # Remover anúncios
+│   └── menu.js        # Menu principal
+├── handlers/           # Integrações
+│   └── adsHandler.js  # Handler de anúncios
+├── dono/              # Configurações
+│   └── config.json    # Config principal
+├── sessions/          # Sessões WhatsApp (auto-criado)
+├── index.js           # Arquivo principal
+├── package.json       # Dependências
+└── README.md          # Este arquivo
+```
+
+## 🔧 Adicionando Novos Comandos
+
+1. Crie um arquivo `.js` na pasta `commands/`
 2. Use a estrutura padrão:
 
 ```javascript
@@ -191,7 +186,7 @@ module.exports = {
     category: 'geral',
     
     async execute(client, message, args, adsHandler) {
-        // Sua lógica aqui
+        // Lógica do comando aqui
         message.reply('Comando executado!');
     }
 };
@@ -199,36 +194,65 @@ module.exports = {
 
 3. Reinicie o bot - será carregado automaticamente
 
-## 🌟 Exemplo de Uso Completo
+## 🛠️ Solução de Problemas
 
+### Bot não conecta
+- Verifique se o WhatsApp está aberto no celular
+- Delete a pasta `sessions/` e tente novamente
+- Certifique-se que o Node.js está atualizado
+
+### Erro de API Laravel
+- Verifique se o `baseUrl` está correto
+- Confirme se o `token` está válido
+- Teste a conectividade: `curl -H "Authorization: Bearer SEU_TOKEN" URL/api/ads`
+
+### Anúncios não funcionam
+- Verifique se é um grupo (anúncios só funcionam em grupos)
+- Confirme se é o dono configurado
+- Veja os logs para detalhes do erro
+
+### Logs PM2
 ```bash
-# 1. Criar anúncio que roda a cada 30 minutos
-!addads Bem-vindos ao nosso grupo! Leiam as regras.|30m
-
-# 2. Criar anúncio diário
-!addads Backup diário realizado com sucesso!|1d
-
-# 3. Ver todos os anúncios
-!listads
-
-# 4. Remover anúncio específico
-!rmads 1
-
-# 5. Ver status completo
-!menu
+pm2 logs bot-admin     # Ver logs em tempo real
+pm2 flush bot-admin    # Limpar logs
 ```
 
-## 📞 Suporte
+## 📊 Monitoramento
 
+### Status em Tempo Real
+- Logs detalhados no console
+- Mensagem de status ao iniciar
+- Contadores de anúncios ativos
+
+### Comando `!menu`
+Mostra informações completas:
+- Versão do bot
+- Quantidade de comandos
+- Status da API
+- Anúncios ativos
+
+## 🔐 Segurança
+
+- ✅ Apenas o dono pode usar comandos
+- ✅ Validação de entrada em todos os comandos  
+- ✅ Rate limiting automático do WhatsApp
+- ✅ Logs de todas as ações
+
+## 🆘 Suporte
+
+### Contatos
 - **Desenvolvedor**: Gabriel
 - **Versão**: 1.0.0
-- **Compatibilidade**: Node.js 18+
-- **Plataforma**: Linux, Windows, macOS
 
-## 📄 Licença
+### Logs Importantes
+```bash
+# Ver logs em tempo real
+npm run pm2:logs
 
-MIT License - Veja o arquivo LICENSE para detalhes.
+# Histórico completo
+cat ~/.pm2/logs/bot-admin-out.log
+```
 
 ---
 
-🚀 **Bot Admin WhatsApp** - Sistema completo de administração de grupos com integração Laravel
+🌟 **Desenvolvido por Gabriel** - Bot Admin WhatsApp v1.0.0
