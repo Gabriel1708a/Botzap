@@ -9,6 +9,10 @@ sessions/
 .wwebjs_auth/
 .wwebjs_cache/
 
+# Configurações locais
+dono/config.local.json
+dono/config.production.json
+
 # Logs
 logs/
 *.log

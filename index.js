@@ -5,7 +5,21 @@ const path = require('path');
 const moment = require('moment-timezone');
 
 // Importa configurações e handlers
-const config = require('./dono/config.json');
+const fs = require('fs');
+const path = require('path');
+
+// Tenta carregar config local primeiro, senão usa o padrão
+let config;
+const localConfigPath = path.join(__dirname, 'dono/config.local.json');
+const defaultConfigPath = path.join(__dirname, 'dono/config.json');
+
+if (fs.existsSync(localConfigPath)) {
+    config = require('./dono/config.local.json');
+    console.log('📄 Usando configuração local: config.local.json');
+} else {
+    config = require('./dono/config.json');
+    console.log('📄 Usando configuração padrão: config.json');
+}
 const AdsHandler = require('./handlers/adsHandler');
 const PanelHandler = require('./handlers/panelHandler');
 
