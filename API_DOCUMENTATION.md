@@ -5,7 +5,7 @@ Sistema de API para integração entre o site Laravel e o Bot WhatsApp para gere
 ## 🔧 Configuração
 
 ### 1. Bot WhatsApp
-O bot roda um servidor Express na porta configurada (padrão: 3000) que recebe requisições do site Laravel.
+O bot roda um servidor Express na porta configurada (padrão: 6000) que recebe requisições do site Laravel.
 
 ```json
 // dono/config.json
@@ -13,13 +13,13 @@ O bot roda um servidor Express na porta configurada (padrão: 3000) que recebe r
   "panelHandler": {
     "enabled": true,
     "host": "0.0.0.0",
-    "port": 3000
+    "port": 6000
   }
 }
 ```
 
 ### 2. Acesso à API
-- **URL Base**: `http://SEU_SERVIDOR:3000`
+- **URL Base**: `http://SEU_SERVIDOR:6000`
 - **Headers**: `Content-Type: application/json`
 
 ## 🚀 Endpoints Disponíveis
@@ -269,7 +269,7 @@ class BotGroupController extends Controller
     
     public function __construct()
     {
-        $this->botApiUrl = config('services.whatsapp_bot.api_url', 'http://localhost:3000');
+                 $this->botApiUrl = config('services.whatsapp_bot.api_url', 'http://localhost:6000');
     }
     
     /**
@@ -416,15 +416,15 @@ class BotGroupController extends Controller
 
 ### 1. **Adicionar no `config/services.php`:**
 ```php
-'whatsapp_bot' => [
-    'api_url' => env('WHATSAPP_BOT_API_URL', 'http://localhost:3000'),
+ 'whatsapp_bot' => [
+     'api_url' => env('WHATSAPP_BOT_API_URL', 'http://localhost:6000'),
     'timeout' => env('WHATSAPP_BOT_TIMEOUT', 30),
 ],
 ```
 
 ### 2. **Adicionar no `.env`:**
 ```env
-WHATSAPP_BOT_API_URL=http://206.183.129.78:3000
+WHATSAPP_BOT_API_URL=http://206.183.129.78:6000
 WHATSAPP_BOT_TIMEOUT=30
 ```
 
