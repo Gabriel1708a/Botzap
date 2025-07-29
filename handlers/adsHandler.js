@@ -8,6 +8,7 @@ class AdsHandler {
         this.activeAds = new Map(); // Map<groupId, Map<localAdId, adData>>
         this.intervals = new Map(); // Map<groupId+localAdId, intervalId>
         this.localAdCounter = new Map(); // Map<groupId, number>
+        this.syncInProgress = false; // Flag para evitar sincronizações simultâneas
         
         // Configuração da API Laravel
         this.apiConfig = {
@@ -44,13 +45,15 @@ class AdsHandler {
     async inicializar() {
         console.log('[ADS] Inicializando handler de anúncios...');
         
-        // Sincronização inicial
-        await this.sincronizarTodosGrupos();
+        // Sincronização inicial com delay
+        setTimeout(() => {
+            this.sincronizarTodosGrupos().catch(console.error);
+        }, 5000); // Aguarda 5 segundos antes da primeira sincronização
         
-        // Sincronização periódica a cada 2 minutos
+        // Sincronização periódica a cada 5 minutos (reduzido de 2min)
         setInterval(() => {
             this.sincronizarTodosGrupos().catch(console.error);
-        }, 2 * 60 * 1000);
+        }, 5 * 60 * 1000);
         
         console.log('[ADS] Handler inicializado com sucesso!');
     }
@@ -59,9 +62,20 @@ class AdsHandler {
      * Sincroniza anúncios de todos os grupos
      */
     async sincronizarTodosGrupos() {
+        // Evita sincronizações simultâneas
+        if (this.syncInProgress) {
+            console.log('[ADS] ⏸️ Sincronização já em andamento, pulando...');
+            return;
+        }
+        
+        this.syncInProgress = true;
+        
         try {
+            console.log('[ADS] 🔄 Iniciando sincronização...');
             const response = await this.api.get('/ads');
             const adsRemoto = response.data.data || [];
+            
+            console.log(`[ADS] 📡 Recebidos ${adsRemoto.length} anúncios do servidor`);
             
             // Agrupa anúncios por group_id
             const adsPorGrupo = {};
@@ -72,16 +86,24 @@ class AdsHandler {
                 adsPorGrupo[ad.group_id].push(ad);
             });
             
+            console.log(`[ADS] 📊 Grupos com anúncios: ${Object.keys(adsPorGrupo).length}`);
+            
             // Sincroniza cada grupo
             for (const [groupId, ads] of Object.entries(adsPorGrupo)) {
+                console.log(`[ADS] 🔄 Sincronizando grupo ${groupId} (${ads.length} anúncios)`);
                 await this.sincronizarAds(groupId, ads);
+                await this.delay(500); // Pequeno delay entre grupos
             }
             
             // Remove anúncios locais que não existem mais no servidor
             await this.removerAdsExcluidos(adsRemoto);
             
+            console.log('[ADS] ✅ Sincronização concluída');
+            
         } catch (error) {
-            console.error('[ADS] Erro na sincronização:', error.message);
+            console.error('[ADS] ❌ Erro na sincronização:', error.message);
+        } finally {
+            this.syncInProgress = false;
         }
     }
 
@@ -101,11 +123,22 @@ class AdsHandler {
             for (const adRemoto of adsRemoto) {
                 if (adRemoto.group_id !== groupId) continue;
                 
-                const localAdId = adRemoto.local_ad_id || this.gerarProximoLocalAdId(groupId);
+                // Usa o local_ad_id do servidor se existir, senão gera um novo
+                let localAdId = adRemoto.local_ad_id;
+                if (!localAdId) {
+                    localAdId = this.gerarProximoLocalAdId(groupId);
+                    console.log(`[ADS] Gerando novo local_ad_id para anúncio: ${localAdId}`);
+                } else {
+                    // Converte para string para garantir consistência
+                    localAdId = localAdId.toString();
+                }
                 
+                // Verifica se já existe localmente
                 if (!adsLocal.has(localAdId)) {
-                    console.log(`[ADS] Novo anúncio encontrado: ${groupId}:${localAdId}`);
+                    console.log(`[ADS] Novo anúncio encontrado: ${groupId}:${localAdId} - "${adRemoto.content?.substring(0, 30)}..."`);
                     await this.adicionarAnuncioLocal(groupId, localAdId, adRemoto);
+                } else {
+                    console.log(`[ADS] Anúncio já existe localmente: ${groupId}:${localAdId}`);
                 }
             }
             
@@ -121,19 +154,36 @@ class AdsHandler {
         const idsRemoto = new Set();
         adsRemoto.forEach(ad => {
             if (ad.local_ad_id && ad.group_id) {
-                idsRemoto.add(`${ad.group_id}:${ad.local_ad_id}`);
+                // Garante que o ID seja string para comparação
+                idsRemoto.add(`${ad.group_id}:${ad.local_ad_id.toString()}`);
             }
         });
         
         // Verifica cada anúncio local
         for (const [groupId, adsLocal] of this.activeAds.entries()) {
+            const adsParaRemover = [];
+            
             for (const [localAdId, adData] of adsLocal.entries()) {
-                const chave = `${groupId}:${localAdId}`;
+                const chave = `${groupId}:${localAdId.toString()}`;
                 if (!idsRemoto.has(chave)) {
-                    console.log(`[ADS] Removendo anúncio excluído: ${chave}`);
-                    this.removerAnuncioLocal(groupId, localAdId);
+                    // Só remove se não foi criado recentemente (evita race condition)
+                    const agora = Date.now();
+                    const criadoEm = adData.created_at || adData.joined_at || agora - 60000; // fallback
+                    const tempoDecorrido = agora - new Date(criadoEm).getTime();
+                    
+                    if (tempoDecorrido > 30000) { // Só remove após 30 segundos
+                        console.log(`[ADS] Removendo anúncio excluído: ${chave} (criado há ${Math.round(tempoDecorrido/1000)}s)`);
+                        adsParaRemover.push({ groupId, localAdId });
+                    } else {
+                        console.log(`[ADS] Mantendo anúncio recente: ${chave} (criado há ${Math.round(tempoDecorrido/1000)}s)`);
+                    }
                 }
             }
+            
+            // Remove os anúncios identificados
+            adsParaRemover.forEach(({ groupId, localAdId }) => {
+                this.removerAnuncioLocal(groupId, localAdId);
+            });
         }
     }
 
@@ -217,11 +267,15 @@ class AdsHandler {
         }
         this.activeAds.get(groupId).set(localAdId, adData);
         
-        // Atualiza o contador
+        // Atualiza o contador se necessário
         const currentCounter = this.localAdCounter.get(groupId) || 0;
-        if (localAdId >= currentCounter) {
-            this.localAdCounter.set(groupId, parseInt(localAdId) + 1);
+        const idNumerico = parseInt(localAdId.toString());
+        if (!isNaN(idNumerico) && idNumerico >= currentCounter) {
+            this.localAdCounter.set(groupId, idNumerico + 1);
         }
+        
+        // Adiciona timestamp para controle
+        adData.created_at = adData.created_at || new Date().toISOString();
         
         // Inicia o agendamento
         this.iniciarAgendamento(groupId, localAdId, adData);
@@ -312,9 +366,25 @@ class AdsHandler {
      * Gera o próximo ID local para um grupo
      */
     gerarProximoLocalAdId(groupId) {
+        // Verifica o maior ID já existente para este grupo
+        const adsLocal = this.activeAds.get(groupId);
+        let maxId = 0;
+        
+        if (adsLocal) {
+            for (const localAdId of adsLocal.keys()) {
+                const id = parseInt(localAdId.toString());
+                if (!isNaN(id) && id > maxId) {
+                    maxId = id;
+                }
+            }
+        }
+        
+        // Usa o counter ou o máximo + 1, o que for maior
         const counter = this.localAdCounter.get(groupId) || 1;
-        this.localAdCounter.set(groupId, counter + 1);
-        return counter;
+        const nextId = Math.max(counter, maxId + 1);
+        
+        this.localAdCounter.set(groupId, nextId + 1);
+        return nextId.toString();
     }
 
     /**
