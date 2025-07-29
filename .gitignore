@@ -9,9 +9,6 @@ sessions/
 .wwebjs_auth/
 .wwebjs_cache/
 
-# Configurações sensíveis
-dono/config.json
-
 # Logs
 logs/
 *.log
