@@ -4,10 +4,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const moment = require('moment-timezone');
 
-// Importa configurações e handlers
-const fs = require('fs');
-const path = require('path');
-
 // Tenta carregar config local primeiro, senão usa o padrão
 let config;
 const localConfigPath = path.join(__dirname, 'dono/config.local.json');
